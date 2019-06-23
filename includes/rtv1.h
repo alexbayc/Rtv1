@@ -167,6 +167,18 @@ typedef	struct		s_cone
 	int			type;
 }					t_cone;
 
+typedef struct s_figure
+{
+	t_vec3		center;
+	t_material	material;
+	float		radius;
+	t_vec3		v;
+	double		angle;
+	int			type;
+	int			min;
+	int			max;
+}				t_figure;
+
 
 struct s_vertex
 {
@@ -210,7 +222,7 @@ typedef  struct s_world
 
 typedef struct	s_main_obj
 {
-	t_object	*figures;
+	t_figure	*figures;
 	int			figures_num;
 	t_light		*lights;
 	int			elum_num;

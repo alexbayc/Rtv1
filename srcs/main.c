@@ -149,26 +149,26 @@ t_vec3 cone_get_normal(t_ray *ray, t_object *figure)
 
 int scene_intersect(t_main_obj *main, t_ray *ray, t_vec3 *hit, t_vec3 *N, t_material *material)
 {
- 	main->closest = FLT_MAX; 
-	float dist_i;
-	float object_dist = FLT_MAX; 
-	int i = 0;
-	while (i < main->figures_num)
-	{
-		if (main->figures[i].intersect(&main->figures[i], ray, &dist_i) && dist_i < object_dist)
-		{
-			is_any_figure_closer(main, dist_i); 
-			object_dist = dist_i;
-			ray->t = dist_i;
-			t_vec3 temp = ft_vec3_scalar_multiply(ray->dir, dist_i);
-			*hit = ft_vec3_sum(ray->orig, temp);
-			ray->hit = *hit;
-			temp = main->figures[i].get_normal(ray, &main->figures[i]); // problem also cause of shading not working
-			*N = ft_vec3_normalize(temp);
-			*material = ((t_sphere *)main->figures[i].object)->material; // mm not suppose to be  t_sphere, but works
-		}
-		i++;
-	}
+ 	// main->closest = FLT_MAX; 
+	// float dist_i;
+	// float object_dist = FLT_MAX; 
+	// int i = 0;
+	// while (i < main->figures_num)
+	// {
+	// 	if (main->figures[i].intersect(&main->figures[i], ray, &dist_i) && dist_i < object_dist)
+	// 	{
+	// 		is_any_figure_closer(main, dist_i); 
+	// 		object_dist = dist_i;
+	// 		ray->t = dist_i;
+	// 		t_vec3 temp = ft_vec3_scalar_multiply(ray->dir, dist_i);
+	// 		*hit = ft_vec3_sum(ray->orig, temp);
+	// 		ray->hit = *hit;
+	// 		temp = main->figures[i].get_normal(ray, &main->figures[i]); // problem also cause of shading not working
+	// 		*N = ft_vec3_normalize(temp);
+	// 		*material = ((t_sphere *)main->figures[i].object)->material; // mm not suppose to be  t_sphere, but works
+	// 	}
+	// 	i++;
+	// }
 	return main->closest < 1000;
 }
 
@@ -324,12 +324,12 @@ void ft_update(t_game *game)
 
 }
 
-void ft_object_push(t_game *game, t_object *object)
+void ft_object_push(t_game *game, t_figure *figure)
 {
 	if (game->main_objs.figures == NULL)
 		game->main_objs.figures_num = 0;
-	game->main_objs.figures = realloc(game->main_objs.figures, sizeof(t_object) * (game->main_objs.figures_num + 1));
-	game->main_objs.figures[game->main_objs.figures_num] = *object;
+	game->main_objs.figures = realloc(game->main_objs.figures, sizeof(t_figure) * (game->main_objs.figures_num + 1));
+	game->main_objs.figures[game->main_objs.figures_num] = *figure;
 game->main_objs.figures_num += 1;
 }
 
@@ -351,12 +351,18 @@ int	main(int argc, char **argv)
 	game.main_objs.lights[3] = (t_light){(t_vec3){5, 0, -5}, 2};
 	game.main_objs.elum_num = 5; // number of light sources
 
-	ft_object_push(&game, &(t_object){&(t_cone){(t_vec3){0, 2, -50}, ivory, 1.5, (t_vec3){0.5, 0.5, 0}, 30, (t_vec3){0, 2, -5}}, cone_intersection, cone_get_normal});
+	// ft_object_push(&game, &(t_object){&(t_cone){(t_vec3){0, 2, -50}, ivory, 1.5, (t_vec3){0.5, 0.5, 0}, 30, (t_vec3){0, 2, -5}}, cone_intersection, cone_get_normal});
 	// ft_object_push(&game, &(t_object){&(t_sphere){(t_vec3){1.5, -0.5, -18}, glass, 3, 5}, sphere_intersection, sphere_get_normal});
-	ft_object_push(&game, &(t_object){&(t_sphere){(t_vec3){6, -0.5, -18}, ivory, 3, 5},sphere_intersection, sphere_get_normal});
-	ft_object_push(&game, &(t_object){&(t_cylinder){(t_vec3){-7, 2, -20}, red_rubber, 2,(t_vec3){0,1,0}, -2, 2}, cylinder_intersection, cylinder_get_normal});
+	// ft_object_push(&game, &(t_object){&(t_sphere){(t_vec3){6, -0.5, -18}, ivory, 3, 5},sphere_intersection, sphere_get_normal});
+	// ft_object_push(&game, &(t_object){&(t_cylinder){(t_vec3){-7, 2, -20}, red_rubber, 2,(t_vec3){0,1,0}, -2, 2}, cylinder_intersection, cylinder_get_normal});
 	// ft_object_push(&game, &(t_object){&(t_plane){(t_vec3){0, 1, 0, 4}, (t_vec3){0,1,0}, red_rubber}, plane_intersection, plane_get_normal});
 	
+	ft_object_push(&game, &(t_figure){(t_vec3){0, 2, -50}, ivory, 1.5, (t_vec3){0.5, 0.5, 0}, 30, CONE});
+	ft_object_push(&game, &(t_figure){(t_vec3){1.5, -0.5, -18}, glass, 3, (t_vec3){0,1,0}, 0, SPHERE});
+	ft_object_push(&game, &(t_figure){(t_vec3){6, -0.5, -18}, red_rubber, 3, (t_vec3){0,1,0}, 0, SPHERE});
+	ft_object_push(&game, &(t_figure){(t_vec3){-7, 2, -20}, red_rubber, 2,(t_vec3){0,1,0}, -2, CYLINDER});
+	ft_object_push(&game, &(t_figure){(t_vec3){0, 1, 0, 4}, red_rubber, 3, (t_vec3){0,1,0}, 0, PLANE});
+
 	game.origin = (t_vec3){0,0,5,1};
 
 
@@ -364,7 +370,7 @@ int	main(int argc, char **argv)
 	opencl_init(gpu, &game);
 
 
-	ft_init_window(game.sdl, WIN_W, WIN_H);
-	ft_update(&game);
+	// ft_init_window(game.sdl, WIN_W, WIN_H);
+	// ft_update(&game);
 	ft_exit(NULL);
 }

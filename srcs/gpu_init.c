@@ -88,9 +88,9 @@ int bind_data(t_gpu *gpu, t_main_obj *main)
     d_a = clCreateBuffer(gpu->context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
         sizeof(t_vec3) * WIN_W * WIN_H, h_a, &gpu->err);
     d_obj = clCreateBuffer(gpu->context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(t_object) * main->figures_num, main->figures, &gpu->err);
+        sizeof(t_figure) * main->figures_num, main->figures, &gpu->err);
     d_light = clCreateBuffer(gpu->context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
-        sizeof(t_object) * main->elum_num, main->lights, &gpu->err);
+        sizeof(t_light) * main->elum_num, main->lights, &gpu->err);
     d_out = clCreateBuffer(gpu->context, CL_MEM_WRITE_ONLY, data_size, NULL, &gpu->err);
 
     gpu->err = clSetKernelArg(gpu->kernel, 0, sizeof(cl_mem), &d_a);
@@ -102,20 +102,29 @@ int bind_data(t_gpu *gpu, t_main_obj *main)
     gpu->err |= clSetKernelArg(gpu->kernel, 5, sizeof(cl_mem), &d_out);
     gpu->err |= clSetKernelArg(gpu->kernel, 6, sizeof(unsigned int), &count);
     // print_error(gpu);
-	printf("outside: number of lights: %i, number of objects:%i\n", main->elum_num, main->figures_num);
-
-    gpu->err = clEnqueueNDRangeKernel(gpu->commands, gpu->kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
-    gpu->err = clEnqueueReadBuffer(gpu->commands, d_out, CL_TRUE, 0, sizeof(t_vec3)*count, out, 0, NULL, NULL);
     for (int i = 0; i < main->elum_num; ++i)
     {
-        printf("inside: %i - %f, %f, %f\n", i, main->lights[i].position.x,
+        printf("lights outside: %i - %f, %f, %f\n", i, main->lights[i].position.x,
                                                 main->lights[i].position.y,
                                                 main->lights[i].position.z);
     }
-    for (int i = 0; i < global; ++i)
-        printf("%f, %f, %f\n", out[i].x, out[i].y, out[i].z);
+    for (int i = 0; i < main->figures_num; ++i)
+    {
+        printf("objs outside: %i - %f, %f, %f\n", i, main->figures[i].center.x,
+                                                main->figures[i].center.y,
+                                                main->figures[i].center.z);
+    }
+    gpu->err = clEnqueueNDRangeKernel(gpu->commands, gpu->kernel, 1, NULL, &global, NULL, 0, NULL, NULL);
+    gpu->err = clEnqueueReadBuffer(gpu->commands, d_out, CL_TRUE, 0, sizeof(t_vec3)*count, out, 0, NULL, NULL);
+
+    
+    // for (int i = 0; i < global; ++i)
+    //     printf("%f, %f, %f\n", out[i].x, out[i].y, out[i].z);
     clReleaseMemObject(d_a);
     clReleaseMemObject(d_out);
+    clReleaseMemObject(d_light);
+    clReleaseMemObject(d_obj);
+
     release_gpu(gpu);
     return (0);
 }
