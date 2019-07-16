@@ -1,8 +1,8 @@
 #ifndef RTV1_H
 #define RTV1_H
 
-#define WIN_W 1280
-#define WIN_H 720
+#define WIN_W 1200
+#define WIN_H 600
 
 #include <sys/types.h>
 #include "SDL2/SDL.h"
@@ -25,8 +25,9 @@
 //#include "libmath.h"
 # define DROUND(d)	ABS(d) < 0.00001 ? 0 : (d)
 //#define float double
-
-enum e_figure {PLANE, SPHERE, CYLINDER, CONE};
+typedef enum e_figure {
+	 SPHERE, CYLINDER, CONE, PLANE
+	} t_type;
 
 typedef struct s_vertex t_vertex;
 typedef struct s_sector t_sector;
@@ -34,6 +35,33 @@ typedef struct s_object t_object;
 typedef struct s_coord t_coord;
 typedef	struct 	s_vec3 t_vec3;
 typedef	struct 	s_vec4 t_vec4;
+
+
+
+typedef struct Object{
+	float radius;
+	cl_float3 position;
+	cl_float3 color;
+	cl_float3 emission;
+	cl_float3 v;
+	t_type type;
+	cl_float refraction;
+	cl_float reflection;
+	cl_float plane_d;
+} t_obj;
+
+
+
+// typedef struct Sphere1
+// {
+//  cl_float radius;
+//  cl_float dummy1;   
+//  cl_float dummy2;
+//  cl_float dummy3;
+//  cl_float3 position;
+//  cl_float3 color;
+//  cl_float3 emission;
+// } t_spher;
 
 typedef	struct s_point3
 {
@@ -122,11 +150,23 @@ typedef struct		s_triangle
 	t_material material;
 } t_triangle;
 
+// struct s_object
+// {
+// 	void *object;
+// 	double (*intersect)();
+// 	t_vec3 (*get_normal)();
+// }; 
+
 struct s_object
 {
-	void *object;
-	double (*intersect)();
-	t_vec3 (*get_normal)();
+	cl_int		type;
+	cl_float	radius;
+	cl_float3	pos;
+	cl_float3	color;
+	cl_float3	emission;
+	cl_float3	dir;
+	cl_float	angle;
+	cl_float	plane_d;
 }; 
 
 typedef struct s_sphere
@@ -195,7 +235,7 @@ typedef struct s_coord
 
 typedef struct s_polygon
 {
-	t_vertex **vertices;
+t_vertex **vertices;
 	int nvertices;
 	//Texture
 	t_sector *sector;
@@ -230,6 +270,21 @@ typedef struct	s_main_obj
 
 }				t_main_obj;
 
+typedef struct s_gpu
+{
+    cl_device_id		device_id;     // compute device id
+    cl_context			context;       // compute context
+    cl_command_queue	commands;      // compute command queue
+    cl_program			program;       // compute program
+    cl_kernel			kernel;       // compute kernel
+	cl_uint				numPlatforms;
+	cl_int				err;
+	char*				kernel_source;
+	int * cpuOutput;
+	t_obj *spheres;
+	cl_mem cl_bufferOut;
+	cl_mem cl_cpuSpheres;
+}				t_gpu;
 
 typedef struct s_game
 {
@@ -245,21 +300,13 @@ typedef struct s_game
 	int wsad[8];
 	t_vec3 origin;
 	t_main_obj	main_objs;
-
+	t_gpu *gpu;
+	int init_render;
 } t_game;
 
-typedef struct s_gpu
-{
-    cl_device_id		device_id;     // compute device id
-    cl_context			context;       // compute context
-    cl_command_queue	commands;      // compute command queue
-    cl_program			program;       // compute program
-    cl_kernel			kernel;       // compute kernel
-	cl_uint				numPlatforms;
-	cl_int				err;
-	char*				kernel_source;
-}				t_gpu;
-
+int bind_data(t_gpu *gpu, t_main_obj *main);
+void release_gpu(t_gpu *gpu);
+void ft_run_gpu(t_gpu *gpu);
 void	configure_sphere(char *map_name, t_sphere *sphere);
 // inline t_vec3 ft_vec3_create(float x, float y, float z);
 // inline t_vec3	ft_vec3_sum(t_vec3 a, t_vec3 b);

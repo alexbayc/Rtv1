@@ -1,521 +1,278 @@
-typedef	struct 	s_vec3 t_vec3;
+__constant float EPSILON = 0.00003f; /* required to compensate for limited float precision */
+__constant float PI = 3.14159265359f;
+__constant int SAMPLES = 512;
 
-struct 	s_vec3
+typedef struct Ray
 {
-	float x;
-	float y;
-	float z;
-	float w;
-};
+	float3 origin;
+	float3 dir;
+} Ray;
 
-typedef struct 	s_mat4
+typedef enum e_figure
 {
-	double matrix[4][4];
-} t_mat4;
+	 SPHERE, CYLINDER, CONE, PLANE
+} t_type;
 
-typedef struct s_ray
-{
-	t_vec3 orig;
-	t_vec3 dir;
-	t_vec3 hit;
-	double t;
+typedef struct Object{
+	float radius;
+	float3 position;
+	float3 color;
+	float3 emission;
+	float3 v;
+	t_type type;
+	float refraction;
+	float reflection;
+	float plane_d;
+} t_obj;
 
-} t_ray;
+static float get_random( int *seed0, int *seed1) {
 
-typedef struct	Material {
-	t_vec3 diffuse_color;
-	t_vec3 albendo;
-	float specular_exponent;
-	float refractive_index;
-}				t_material;
+	/* hash the seeds using bitwise AND operations and bitshifts */
+	*seed0 = 36969 * ((*seed0) & 65535) + ((*seed0) >> 16);  
+	*seed1 = 18000 * ((*seed1) & 65535) + ((*seed1) >> 16);
 
-typedef struct s_light {
-	t_vec3 position;
-	float intensity;
-} t_light;
+	unsigned int ires = ((*seed0) << 16) + (*seed1);
 
-typedef struct s_figure
-{
-	t_vec3		center;
-	t_material	material;
-	float		radius;
-	t_vec3		v;
-	double		angle;
-	int			type;
-	int			min;
-	int			max;
-}				t_figure;
-
-enum e_figure {PLANE, SPHERE, CYLINDER, CONE};
-
-double		sphere_intersection(t_figure *figure, t_ray *ray, float *t0);
-double		cone_intersection(t_figure *object, t_ray *ray, float *t0);
-double		cylinder_intersection(t_figure *object, t_ray *ray, float *t0);
-double		plane_intersection(t_figure *object, t_ray *ray, float *t0);
-int			have_solutions(double d);
-double		get_solution(double a, double b, double c, float *t0);
-
-t_vec3		reflect(t_vec3 I, t_vec3 n);
-t_vec3		refract(t_vec3 I, t_vec3 N, const float eta_t, const float eta_i);
-
-t_vec3		ft_vec3_scalar_multiply(t_vec3 a, float b);
-float		ft_vec3_dot_multiply(t_vec3 a, t_vec3 b);
-t_vec3		ft_vec3_substract(t_vec3 a, t_vec3 b);
-float		ft_vec3_multiply_cone(t_vec3 a, t_vec3 b);
-t_vec3		ft_vec3_create(float x, float y, float z);
-t_vec3		ft_vec3_multiply_matrix(t_vec3 v, t_mat4 m);
-t_mat4		ft_mat4_multiply_mat4(t_mat4 a, t_mat4 b);
-t_mat4		ft_mat4_translation_matrix(t_vec3 v);
-t_mat4		ft_mat4_rotation_matrix(t_vec3 axis, double alpha);
-t_mat4		ft_mat4_identity_matrix(void);
-t_vec3		ft_vec3_normalize(t_vec3 vect);
-float 		ft_vec3_norm(t_vec3 vect);
-t_vec3		ft_vec3_sum(t_vec3 a, t_vec3 b);
-t_vec3		ft_vec3_neg(t_vec3 v);
-
-t_vec3		plane_get_normal(t_ray *ray, t_figure *figure);
-t_vec3		cone_get_normal(t_ray *ray, t_figure *figure);
-t_vec3		sphere_get_normal(t_ray *ray, t_figure *figure);
-t_vec3		cylinder_get_normal(t_ray *ray, t_figure *figure);
-
-int			is_any_figure_closer(double *closest, double cache);
-int			scene_intersect(__constant t_figure *objs, int obj_num, t_ray *ray, t_vec3 *hit, t_vec3 *N, t_material *material);
-t_vec3		cast_ray(__constant t_figure *objs, __constant t_light *lights, int obj_num, int lights_count, t_ray *ray, size_t depth);
-
-//====================================//
-
-__kernel void init_calculations(
-	__global t_vec3 *vecs, 
-	__constant t_figure *objects,
-	__constant t_light *lights,
-	int objs_count,
-	int lights_count, //TODO use const
-	__global t_vec3 *out_vecs,
-	const unsigned int count)
-{
-	t_vec3 origin, dir;
-	float xa = 0, ya = 0, za = 0;
-	float eyex = 0, eyey = 0, eyez = 0;
-	int id = get_global_id(0);
-	if (id < count)
+	/* use union struct to convert int to float */
+	union 
 	{
-		origin = ft_vec3_create(eyex, eyey, eyez);
-		dir = ft_vec3_multiply_matrix(vecs[id], ft_mat4_rotation_matrix((t_vec3) {0,-1,0}, xa));
-		barrier(CLK_LOCAL_MEM_FENCE);
-		out_vecs[id] = cast_ray(objects, lights, objs_count, lights_count, &(t_ray){origin, dir}, 0);
-	}
+		float f;
+		unsigned int ui;
+	} res;
+
+	res.ui = (ires & 0x007fffff) | 0x40000000;  /* bitwise AND, bitwise OR */
+	return (res.f - 2.0f) / 2.0f;
 }
 
-float ft_vec3_norm(t_vec3 vect)
+float3 reflect(float3 vector, float3 n) 
+{ 
+    return vector - 2 * dot(vector, n) * n; 
+} 
+
+float3 refract(float3 vector, float3 n, float refrIndex)
 {
-	return (sqrt(vect.x * vect.x + vect.y * vect.y + vect.z * vect.z));
+	float cosI = -dot(n, vector);
+	float cosT2 = 1.0f - refrIndex * refrIndex * (1.0f - cosI * cosI);
+	return (refrIndex * vector) + (refrIndex * cosI - sqrt( cosT2 )) * n;
 }
 
-float ft_vec3_dot_multiply(t_vec3 a, t_vec3 b)
-{
-	return (a.x * b.x + a.y * b.y + a.z * b.z);
+static Ray createCamRay(const int x_coord, const int y_coord, const int width, const int height){
+
+	float fx = (float)x_coord / (float)width;  /* convert int in range [0 - width] to float in range [0-1] */
+	float fy = (float)y_coord / (float)height; /* convert int in range [0 - height] to float in range [0-1] */
+
+	/* calculate aspect ratio */
+	float aspect_ratio = (float)(width) / (float)(height);
+	float fx2 = (fx - 0.5f) * aspect_ratio;
+	float fy2 = fy - 0.5f;
+
+	/* determine position of pixel on screen */
+	float3 pixel_pos = (float3)(fx2, -fy2, 0.0f);
+
+	/* create camera ray*/
+	Ray ray;
+	ray.origin = (float3)(0.0f, 0.1f, 2.f); /* fixed camera position */
+	ray.dir = normalize(pixel_pos - ray.origin); /* vector from camera to pixel on screen */
+    return ray;
 }
-
-t_vec3 ft_vec3_neg(t_vec3 v)
+ 
+static float ft_solve(float a, float b, float c)
 {
-	return (ft_vec3_scalar_multiply(v, -1));
-}
+	float  disc = b * b - 4*a*c;
+   	float temp = 1/(2*a);
+	float res;
 
-t_vec3 ft_vec3_create(float x, float y, float z)
-{
-	t_vec3 new;
-
-	new.x = x;
-	new.y = y;
-	new.z = z;
-	return (new);
-}
-
-t_vec3 ft_vec3_normalize(t_vec3 vect)
-{
-	t_vec3 res = vect;
-	float norm = ft_vec3_norm(res);
-	res.x = vect.x / norm;
-	res.y = vect.y / norm;
-	res.z = vect.z / norm;
-	return (res);
-}
-
-t_mat4	ft_mat4_identity_matrix(void)
-{
-	t_mat4	res;
-	int				i;
-	int				j;
-
-	i = -1;
-	while (++i < 4)
-	{
-		j = -1;
-		while (++j < 4)
-			res.matrix[i][j] = 0;
-	}
-	res.matrix[0][0] = 1;
-	res.matrix[1][1] = 1;
-	res.matrix[2][2] = 1;
-	res.matrix[3][3] = 1;
-	return (res);
-}
-
-t_vec3	ft_vec3_multiply_matrix(t_vec3 v, t_mat4 m)
-{
-	t_vec3	res;
-
-	res.x = v.x * m.matrix[0][0] +
-			v.y * m.matrix[0][1] +
-			v.z * m.matrix[0][2] +
-			v.w * m.matrix[0][3];
-	res.y = v.x * m.matrix[1][0] +
-			v.y * m.matrix[1][1] +
-			v.z * m.matrix[1][2] +
-			v.w * m.matrix[1][3];
-	res.z = v.x * m.matrix[2][0] +
-			v.y * m.matrix[2][1] +
-			v.z * m.matrix[2][2] +
-			v.w * m.matrix[2][3];
-	res.w = v.x * m.matrix[3][0] +
-			v.y * m.matrix[3][1] +
-			v.z * m.matrix[3][2] +
-			v.w * m.matrix[3][3];
-	return (res);
-}
-
-t_mat4	ft_mat4_multiply_mat4(t_mat4 a, t_mat4 b)
-{
-	t_mat4	res;
-	int				i;
-	int				j;
-
-	i = -1;
-	while (++i < 4)
-	{
-		j = -1;
-		while (++j < 4)
-		{
-			res.matrix[i][j] = a.matrix[i][0] * b.matrix[0][j] +
-				a.matrix[i][1] * b.matrix[1][j] +
-				a.matrix[i][2] * b.matrix[2][j] +
-				a.matrix[i][3] * b.matrix[3][j];
-		}
-	}
-	return (res);
-}
-
-t_mat4	ft_mat4_translation_matrix(t_vec3 v)
-{
-	t_mat4	res;
-
-	res = ft_mat4_identity_matrix();
-	res.matrix[0][3] = v.x;
-	res.matrix[1][3] = v.y;
-	res.matrix[2][3] = v.z;
-	return (res);
-}
-
-t_mat4	ft_mat4_rotation_matrix(t_vec3 axis, double alpha)
-{
-	t_mat4			res;
-	double			sinus;
-	double			cosin;
-	double			inv_cosin;
-
-	res = ft_mat4_identity_matrix();
-	axis = ft_vec3_normalize(axis);
-	sinus = sin(alpha);
-	cosin = cos(alpha);
-	inv_cosin = 1 - cosin;
-	res.matrix[0][0] = cosin + inv_cosin * axis.x * axis.x;
-	res.matrix[1][0] = inv_cosin * axis.x * axis.y - sinus * axis.z;
-	res.matrix[2][0] = inv_cosin * axis.x * axis.z + sinus * axis.y;
-	res.matrix[0][1] = inv_cosin * axis.y * axis.x + sinus * axis.z;
-	res.matrix[1][1] = cosin + inv_cosin * axis.y * axis.y;
-	res.matrix[2][1] = inv_cosin * axis.y * axis.z - sinus * axis.x;
-	res.matrix[0][2] = inv_cosin * axis.z * axis.x - sinus * axis.y;
-	res.matrix[1][2] = inv_cosin * axis.z * axis.y + sinus * axis.x;
-	res.matrix[2][2] = cosin + inv_cosin * axis.z * axis.z;
-	return (res);
-}
-
-int	have_solutions(double d)
-{
-	if (d > 0)
-		return (2);
-	else if (d == 0)
-		return (1);
-	else
-		return (0);
-}
-
-double		get_solution(double a, double b, double c, float *t0)
-{
-	double		d;
-	double		tmp1;
-	double		tmp2;
-
-	d = b * b - 4.0 * a * c;
-	if (have_solutions(d) == 0)
-		return (0);
-	else if (have_solutions(d) == 1)
-		*t0 = - b / (2 * a);
-	else
-	{
-		tmp1 = sqrt(d);
-		tmp2 = 1 / (2 * a);
-		if (((*t0 = (- b - tmp1) * tmp2)) < 0.003)
-			if ((*t0 = ((- b + tmp1) * tmp2)) < 0.003)
-				return (0);
-	}
-		return (1);
-}
-
-t_vec3	ft_vec3_substract(t_vec3 a, t_vec3 b)
-{
-	t_vec3 new;
-
-	new.x = (a.x - b.x);
-	new.y = (a.y - b.y);
-	new.z = (a.z - b.z);
-	return (new);
-}
-
-t_vec3	ft_vec3_sum(t_vec3 a, t_vec3 b)
-{
-	t_vec3 new;
-
-	new.x = (a.x + b.x);
-	new.y = (a.y + b.y);
-	new.z = (a.z + b.z);
-	return (new);
-}
-
-float ft_vec3_multiply_cone(t_vec3 a, t_vec3 b)
-{
-	return (a.x * b.x - a.y * b.y + a.z * b.z);
-}
-
-t_vec3 ft_vec3_scalar_multiply(t_vec3 a, float b)
-{
-	return ((t_vec3){a.x * b, a.y * b, a.z * b});
-}
-/*--------------------intersection------------------------- */
-
-t_vec3	reflect(t_vec3 I, t_vec3 n)
-{
-	t_vec3 temp;
+ 	if (disc < 0.0f) 
+		return 0.0f;
 	
-	temp = ft_vec3_scalar_multiply(n, 2.f * ft_vec3_dot_multiply(I, n));
-	return ft_vec3_substract(I, temp);
-}
-
-t_vec3 refract(t_vec3 I, t_vec3 N, const float eta_t, const float eta_i)
-{ // Snell's law
-	float cosi = -max(-1.f, min(1.f, ft_vec3_dot_multiply(I,N)));
-    if (cosi<0) 
-		return (t_vec3){1,0,0,1};//refract(I, ft_vec3_neg(N), eta_i, eta_t); // if the ray comes from the inside the object, swap the air and the media
-    float eta = eta_i / eta_t;
-    float k = 1 - eta*eta*(1 - cosi*cosi);
-    return k<0 ? (t_vec3){1,0,0,1}
-				: ft_vec3_sum(ft_vec3_scalar_multiply(I,eta), ft_vec3_scalar_multiply(N,(eta*cosi - sqrtf(k)))); // k<0 = total reflection, no ray to refract. I refract it anyways, this has no physical meaning
+	disc = sqrt(disc);
+	if ((res = (-b - disc) * temp) > EPSILON)
+		return res;
+    if ((res = (-b + disc) * temp) > EPSILON)
+		return res;
+	return(0.f);
 }
 
 
-double		sphere_intersection(t_figure *object, t_ray *ray, float *t0)
+				/* (__global Sphere* sphere, const Ray* ray) */
+static float intersect_cone(const t_obj* cone, const Ray* ray) /* version using local copy of sphere */
 {
-	t_vec3 temp = ft_vec3_substract(ray->orig, object->center);
-	double a = ft_vec3_dot_multiply(ray->dir, ray->dir);
-	double b = ft_vec3_dot_multiply(ft_vec3_scalar_multiply(temp, 2), ray->dir);
-	double c = ft_vec3_dot_multiply(temp, temp) - object->radius * object->radius;
-	return (get_solution(a, b, c, t0));
+	float3	x = ray->origin - cone->position;
+	float	a = dot(ray->dir, cone->v);
+	float	c = dot(x, cone->v);
+	float	temp = 1 + cone->radius * cone->radius;
+	float	b = 2.0 * (dot(ray->dir, x) - temp * a * c);
+
+	a = dot(ray->dir, ray->dir) - temp * a * a;
+	c = dot(x, x) - temp * c * c;	
+	return (ft_solve(a, b, c));
 }
 
-double	cone_intersection(t_figure *object, t_ray *ray, float *t0)
+static float intersect_sphere(const t_obj* sphere, const Ray* ray) /* version using local copy of sphere */
 {
-	t_vec3	x;
+	float3 rayToCenter = ray->origin - sphere->position;
+    float a = 1;
+    float b = 2*dot(rayToCenter, ray->dir);
+    float c = dot(rayToCenter, rayToCenter) - sphere->radius*sphere->radius;	
+	return (ft_solve(a, b, c));
+}
+
+double		intersect_plane(const t_obj* plane, const Ray* ray)
+{
 	double	a;
 	double	b;
-	double	c;
-
-	x = ft_vec3_substract(ray->orig, object->center);
-	a = ft_vec3_dot_multiply(ray->dir, object->v);
-	a = ft_vec3_dot_multiply(ray->dir, ray->dir) - (1 + object->radius * object->radius) * a * a;
-	b = 2.0 * (ft_vec3_dot_multiply(ray->dir, x) - (1 + object->radius * object->radius)
-		* ft_vec3_dot_multiply(ray->dir, object->v) * ft_vec3_dot_multiply(x, object->v));
-	c = ft_vec3_dot_multiply(x, object->v);
-	c = ft_vec3_dot_multiply(x, x) - (1 + object->radius * object->radius) * c * c;
-	return (get_solution(a, b, c, t0));
-}
-
-double		plane_intersection(t_figure *object, t_ray *ray, float *t0)
-{
-	double tmp;
-
-	tmp = object->center.x * ray->dir.x + object->center.y * ray->dir.y + object->center.z * ray->dir.z;
-	if (!tmp)
+	a = dot(plane->position, ray->dir);//ft_vec3_dot_multiply(ft_vec3_substract(ray->orig, plane->point), plane->normal);
+	//b = ft_vec3_dot_multiply(ray->dir, plane->normal);
+	if (a == 0)
 		return (0);
-	*t0 = -(object->center.x * ray->orig.x +  object->center.y * ray->orig.y +  object->center.z * ray->orig.z +  object->center.w) / tmp;
-	return ((*t0 >= 0.0003) ? 1 : 0);
+	b = -(dot(plane->position, ray->origin) + plane->plane_d) / a;
+	return (b < EPSILON) ? 0 : b;
 }
 
-double		cylinder_intersection(t_figure *object, t_ray *ray, float *t0)
+static double		intersect_cylinder(const t_obj* cylinder, const Ray* ray)
 {
-	t_vec3	x;
-	double	a;
-	double	b;
-	double	c;
+	float3	x = ray->origin - cylinder->position;
+	double	a = dot(ray->dir, cylinder->v);
+	double	c = dot(x, cylinder->v);
+	double	b = 2 * (dot(ray->dir, x) - a * dot(x, cylinder->v));
+	double	d;
 
-	x = ft_vec3_substract(ray->orig, object->center);
-	a = ft_vec3_dot_multiply(ray->dir, object->v);
-	a = ft_vec3_dot_multiply(ray->dir, ray->dir) - a * a;
-	b = 2 * (ft_vec3_dot_multiply(ray->dir, x) - ft_vec3_dot_multiply(ray->dir, object->v)
-		* ft_vec3_dot_multiply(x, object->v));
-	c = ft_vec3_dot_multiply(x, object->v);
-	c = ft_vec3_dot_multiply(x, x) - c * c - object->radius * object->radius;
-	return (get_solution(a, b, c, t0));
+	a = dot(ray->dir, ray->dir) - a * a;
+	c = dot(x, x) - c * c - cylinder->radius * cylinder->radius;
+	return (ft_solve(a, b, c));
 }
 
-
-/* ********************************** */
-
-int	is_any_figure_closer(double *closest, double cache)
+static bool intersect_scene(__constant t_obj* spheres, const Ray* ray, float* t, int* sphere_id, const int sphere_count)
 {
-	if (cache > 0 && cache < *closest)
-	{
-		*closest = cache;
-		return (1);
-	}
-	return (0);
-}
+	/* initialise t to a very large number, 
+	so t will be guaranteed to be smaller
+	when a hit with the scene occurs */
 
-t_vec3 sphere_get_normal(t_ray *ray, t_figure *figure)
-{
-	return ft_vec3_substract(ray->hit, figure->center);
-}
+	float inf = 1e20f;
+	*t = inf;
 
-t_vec3 plane_get_normal(t_ray *ray, t_figure *figure)
-{
-	if (ft_vec3_dot_multiply(ray->dir, figure->v) < 0)
-		return (figure->v);
-	return ft_vec3_scalar_multiply(figure->v, -1);
-}
-
-t_vec3 cylinder_get_normal(t_ray *ray, t_figure *figure)
-{
-	double	m;
-	t_vec3	n;
-	t_vec3	p;
-	
-	m = ft_vec3_dot_multiply(ray->dir, figure->v) * ray->t
-		+ ft_vec3_dot_multiply(ft_vec3_substract(ray->orig, figure->center), figure->v);
-	p = ft_vec3_sum(ray->orig, ft_vec3_scalar_multiply(ray->dir, ray->t));
-	n = ft_vec3_normalize(ft_vec3_substract(ft_vec3_substract(p, figure->center), ft_vec3_scalar_multiply(figure->v, m)));
-	if (ft_vec3_dot_multiply(ray->dir, n) > 0.0001)
-		n = ft_vec3_scalar_multiply(n, -1);
-	return n;
-}
-
-t_vec3 cone_get_normal(t_ray *ray, t_figure *figure)
-{
-	t_vec3	n;
-	double	m;
-	m = ft_vec3_dot_multiply(ray->dir, figure->v) * ray->t
-		+ ft_vec3_dot_multiply(ft_vec3_substract(ray->orig, figure->center), figure->v);
-	n = ft_vec3_scalar_multiply(ft_vec3_scalar_multiply(figure->v, m), (1 + figure->radius * figure->radius));
-	n = ft_vec3_normalize(ft_vec3_substract(ft_vec3_substract(ray->hit, figure->center), n));
-	if (ft_vec3_dot_multiply(ray->dir, n) > 0.0001)
-		n = ft_vec3_scalar_multiply(n, -1);
-	return n;
-}
-
-int scene_intersect(__constant t_figure *figures, int obj_num, t_ray *ray, t_vec3 *hit, t_vec3 *N, t_material *material)
-{
- 	double closest = FLT_MAX; 
-	float dist_i;
-	float object_dist = FLT_MAX; 
-	int i = 0;
-	double (*intersection[5])() = {plane_intersection, sphere_intersection, cylinder_intersection, cone_intersection};//TODO think about it
-	t_vec3 (*get_normal[5])() = {plane_get_normal, sphere_get_normal, cylinder_get_normal, cone_get_normal};
-	while (i < obj_num)
-	{
-		if (intersection[figures[i].type](&figures[i], ray, &dist_i) && dist_i < object_dist)
-		{
-			is_any_figure_closer(&closest, dist_i); 
-			object_dist = dist_i;
-			ray->t = dist_i;
-			t_vec3 temp = ft_vec3_scalar_multiply(ray->dir, dist_i);
-			*hit = ft_vec3_sum(ray->orig, temp);
-			ray->hit = *hit;
-			temp = get_normal[figures[i].type](ray, &figures[i]); // problem also cause of shading not working
-			*N = ft_vec3_normalize(temp);
-			*material = figures[i].material;
-		}
-		i++;
-	}
-	return closest < 1000;
-}
-
-t_vec3 cast_ray(__constant t_figure *objs, __constant t_light *lights, int obj_num, int elum_num, t_ray *ray, size_t depth)
-{//TODO rewrite without recursion, think about 'for' loop
-	t_vec3 point;
-	t_vec3 N;
-	t_material material; 
-	int	i;
-	float sphere_dist = FLT_MAX;
-
-	barrier(CLK_LOCAL_MEM_FENCE);
-	if( depth > 4 || !scene_intersect(objs, obj_num, ray, &point, &N, &material))
-		return ft_vec3_create(0.2, 0.7, 0.8); // background color
-
-	// t_ray reflect_ray;
-	// reflect_ray.dir = ft_vec3_normalize(reflect(ray->dir, N));
-	// reflect_ray.orig  = ft_vec3_dot_multiply(reflect_ray.dir, N) < 0 
-	// 					? ft_vec3_substract(point, ft_vec3_scalar_multiply(N, 1e-3)) 
-	// 					: ft_vec3_sum(point, ft_vec3_scalar_multiply(N, 1e-3));
-	// t_vec3 reflect_color = cast_ray(game, &reflect_ray, depth + 1);
-	// t_ray refract_ray;
-	// refract_ray.dir = ft_vec3_normalize(refract(ray->dir, N, material.refractive_index, 1.0f));
-	// refract_ray.orig = ft_vec3_dot_multiply(refract_ray.dir, N) < 0 
-	// 					? ft_vec3_substract(point, ft_vec3_scalar_multiply(N, 1e-3)) 
-	// 					: ft_vec3_sum(point, ft_vec3_scalar_multiply(N, 1e-3));
-	// t_vec3 refract_color = cast_ray(game, &refract_ray, depth + 1);
-	
-	float diffuse_light_intensity = 0;
-	float specular_light_intensity = 0;
-	i = -1;
-
-	while (++i < elum_num)
-	{
-		t_vec3	light_pos = lights[i].position;
-		float	light_intensity = lights[i].intensity;
-
-		t_vec3 light_dir = ft_vec3_normalize(ft_vec3_substract(light_pos, point));
-		double light_distance = ft_vec3_norm(ft_vec3_substract(light_pos, point));
-		t_ray shadow_ray;
-		shadow_ray.orig = (ft_vec3_dot_multiply(light_dir, N) < 0)
-			? ft_vec3_substract(point, ft_vec3_scalar_multiply(N, 1e-3))
-			: ft_vec3_sum(point, ft_vec3_scalar_multiply(N, 1e-3));
-		shadow_ray.dir = light_dir;
-		t_vec3 shadow_pt, shadow_N;
-		t_material temp_material;
-		barrier(CLK_LOCAL_MEM_FENCE);
-
-		if (scene_intersect(objs, obj_num, &shadow_ray, &shadow_pt, &shadow_N, &temp_material) 
-			&& (ft_vec3_norm(ft_vec3_substract(shadow_pt, shadow_ray.orig)) < light_distance))
-			continue;
-		diffuse_light_intensity += light_intensity
-			* max(0.0f, ft_vec3_dot_multiply(ft_vec3_normalize(light_dir), ft_vec3_normalize(N)));
-		specular_light_intensity += powf(max(0.f, ft_vec3_dot_multiply(ft_vec3_scalar_multiply(
-			reflect(ft_vec3_scalar_multiply(light_dir, -1), N), -1), ray->dir)),
-		 	material.specular_exponent)*light_intensity;
-	}
+	/* check if the ray intersects each sphere in the scene */
+	for (int i = 0; i < sphere_count; i++)  {
 		
-	// return ft_vec3_sum(ft_vec3_sum(ft_vec3_sum(ft_vec3_scalar_multiply(material.diffuse_color,\
-	//  diffuse_light_intensity * material.albendo.x), \
-	//  	 ft_vec3_scalar_multiply((t_vec3){1,1,1}, specular_light_intensity *  material.albendo.y)),\
-	// 	 ft_vec3_scalar_multiply(reflect_color,  material.albendo.z)), ft_vec3_scalar_multiply(refract_color,  material.albendo.w));					//ft_vec3_scalar_multiply(&material.diffuse_color, diffuse_light_intensity);
-	return ft_vec3_sum(ft_vec3_scalar_multiply(material.diffuse_color, diffuse_light_intensity * material.albendo.x), \
-		ft_vec3_scalar_multiply((t_vec3){1,1,1}, specular_light_intensity *  material.albendo.y));
+		t_obj sphere = spheres[i]; /* create local copy of sphere */
+		
+		/* float hitdistance = intersect_sphere(&spheres[i], ray); */
+		float hitdistance = 0; 
+		if (sphere.type == SPHERE)
+			hitdistance = intersect_sphere(&sphere, ray);
+		else if (sphere.type == CYLINDER)
+			hitdistance = intersect_cylinder(&sphere, ray);
+		else if (sphere.type == CONE)
+			hitdistance = intersect_cone(&sphere, ray);
+		else if (sphere.type == PLANE)
+			hitdistance = intersect_plane(&sphere, ray);
+		/* keep track of the closest intersection and hitobject found so far */
+		if (hitdistance != 0.0f && hitdistance < *t) {
+			*t = hitdistance;
+			*sphere_id = i;
+		}
+	}
+	return *t < inf; /* true when ray interesects the scene */
+}
+
+
+/* the path tracing function */
+/* computes a path (starting from the camera) with a defined number of bounces, accumulates light/color at each bounce */
+/* each ray hitting a surface will be reflected in a random direction (by randomly sampling the hemisphere above the hitpoint) */
+/* small optimisation: diffuse ray directions are calculated using cosine weighted importance sampling */
+
+static float3 trace(__constant t_obj* spheres, const Ray* camray, const int sphere_count, const int* seed0, const int* seed1)
+{
+	Ray ray = *camray;
+
+	float3 accum_color = (float3)(0.0f, 0.0f, 0.0f);
+	float3 mask = (float3)(1.0f, 1.0f, 1.0f);
+	unsigned int max_trace_depth = 16;
+
+	for (int bounces = 0; bounces < max_trace_depth; bounces++)
+	{
+		float t;   /* distance to intersection */
+		int hitsphere_id = 0; /* index of intersected sphere */
+
+		/* if ray misses scene, return background colour */
+		if (!intersect_scene(spheres, &ray, &t, &hitsphere_id, sphere_count))
+			return mask * (float3)(0.7f, 0.7f, 0.7f);
+
+		/* else, we've got a hit! Fetch the closest hit sphere */
+		t_obj hitsphere = spheres[hitsphere_id]; /* version with local copy of sphere */
+
+		/* compute the hitpoint using the ray equation */
+		float3 hitpoint = ray.origin + ray.dir * t;
+		
+		/* compute the surface normal and flip it if necessary to face the incoming ray */
+		float3 normal = normalize(hitpoint - hitsphere.position); 
+		float3 normal_facing = dot(normal, ray.dir) < 0.0f ? normal : normal * (-1.0f);
+
+		/* compute two random numbers to pick a random point on the hemisphere above the hitpoint*/
+		float rand1 = 2.0f * PI * get_random(seed0, seed1);
+		float rand2 = get_random(seed0, seed1);
+		float rand2s = sqrt(rand2);
+
+		/* create a local orthogonal coordinate frame centered at the hitpoint */
+		float3 w = normal_facing;
+		float3 axis = fabs(w.x) > 0.1f ? (float3)(0.0f, 1.0f, 0.0f) : (float3)(1.0f, 0.0f, 0.0f);
+		float3 u = normalize(cross(axis, w));
+		float3 v = cross(w, u);
+
+		/* use the coordinte frame and random numbers to compute the next ray direction */
+		float3 newdir = normalize(u * cos(rand1)*rand2s + v*sin(rand1)*rand2s + w*sqrt(1.0f - rand2));
+
+		/* add a very small offset to the hitpoint to prevent self intersection */
+		if (hitsphere.reflection > 0) {
+			ray.dir = reflect(ray.dir, normal_facing);
+			ray.origin = hitpoint + ray.dir * EPSILON;
+
+			accum_color += mask * hitsphere.emission; 	/* add the colour and light contributions to the accumulated colour */ 
+			mask *= hitsphere.color * hitsphere.reflection;	/* the mask colour picks up surface colours at each bounce */
+		} else {
+			ray.dir = newdir;
+			ray.origin = hitpoint + ray.dir * EPSILON;
+			accum_color += mask * hitsphere.emission; 
+			mask *= hitsphere.color;
+		}
+		mask *= dot(newdir, normal_facing);
+	}
+	return accum_color;
+}
+
+static int	ft_rgb_to_hex(int r, int g, int b)
+{
+	return (r << 16 | g << 8 | b);
+}
+
+static float clamp1(float x)
+{
+	return x < 0.0f ? 0.0f : x > 1.0f ? 1.0f : x;
+}
+
+static int toInt(float x)
+{ 
+	return int(clamp1(x) * 255);
+}
+
+__kernel void render_kernel(__global int* output, int width, int height, int n_spheres, __constant t_obj* spheres)
+{
+	
+	unsigned int work_item_id = get_global_id(0);	/* the unique global id of the work item for the current pixel */
+	unsigned int x_coord = work_item_id % width;			/* x-coordinate of the pixel */
+	unsigned int y_coord = work_item_id / width;			/* y-coordinate of the pixel */
+	
+	/* seeds for random number generator */
+	unsigned int seed0 = x_coord;
+	unsigned int seed1 = y_coord;
+
+	Ray camray = createCamRay(x_coord, y_coord, width, height);
+
+  /* add the light contribution of each sample and average over all samples*/
+	float3 finalcolor = (float3)(0.0f, 0.0f, 0.0f);
+	float invSamples = 1.0f / SAMPLES;
+
+	for (int i = 0; i < SAMPLES; i++)
+		finalcolor += trace(spheres, &camray, n_spheres, &seed0, &seed1) * invSamples;
+	output[x_coord + y_coord * width] = ft_rgb_to_hex(toInt(finalcolor.x), toInt(finalcolor.y), toInt(finalcolor.z)); /* simple interpolated colour gradient based on pixel coordinates */
 }
