@@ -1,4 +1,3 @@
-
 __constant float EPSILON = 0.00003f; /* required to compensate for limited float precision */
 __constant float PI = 3.14159265359f;
 __constant int SAMPLES = 512;
@@ -93,6 +92,7 @@ static float ft_solve(float a, float b, float c)
 		return res;
 	return(0.f);
 }
+
 
 				/* (__global Sphere* sphere, const Ray* ray) */
 static float intersect_cone(const t_obj* cone, const Ray* ray) /* version using local copy of sphere */
@@ -237,7 +237,6 @@ static float3 trace(__constant t_obj* spheres, const Ray* camray, const int sphe
 		}
 		mask *= dot(newdir, normal_facing);
 	}
-
 	return accum_color;
 }
 
@@ -269,7 +268,7 @@ __kernel void render_kernel(__global int* output, int width, int height, int n_s
 
 	Ray camray = createCamRay(x_coord, y_coord, width, height);
 
-	/* add the light contribution of each sample and average over all samples*/
+  /* add the light contribution of each sample and average over all samples*/
 	float3 finalcolor = (float3)(0.0f, 0.0f, 0.0f);
 	float invSamples = 1.0f / SAMPLES;
 

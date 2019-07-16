@@ -146,13 +146,15 @@ void ft_update(t_game *game)
 	}
 }
 
-void ft_object_push(t_game *game, t_object *object)
+void ft_object_push(t_game *game, t_figure *figure)
 {
 	if (game->main_objs.figures == NULL)
 		game->main_objs.figures_num = 0;
+
 	game->main_objs.figures = realloc(game->main_objs.figures, sizeof(t_object) * (game->main_objs.figures_num + 1));
 	game->main_objs.figures[game->main_objs.figures_num] = *object;
 	game->main_objs.figures_num += 1;
+
 }
 
 int	main(int argc, char **argv)
@@ -169,6 +171,7 @@ int	main(int argc, char **argv)
 	game.main_objs.lights[2] = (t_light){(t_vec3){-2, 0, -5}, 2};
 	game.main_objs.lights[3] = (t_light){(t_vec3){5, 0, -5}, 2};
 	game.main_objs.elum_num = 5; // number of light sources
+
 	game.init_render = 1;
 	game.origin = (t_vec3){0,0,5,1};
 	game.gpu = (t_gpu *)malloc(sizeof(t_gpu));
