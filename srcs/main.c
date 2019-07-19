@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: olesgedz <olesgedz@student.42.fr>          +#+  +:+       +#+        */
+/*   By: odale-dr <odale-dr@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2019/05/22 15:34:45 by sdurgan           #+#    #+#             */
-/*   Updated: 2019/07/03 12:21:34 by olesgedz         ###   ########.fr       */
+/*   Updated: 2019/07/18 18:54:09 by odale-dr         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,13 +152,18 @@ void ft_object_push(t_game *game, t_figure *figure)
 		game->main_objs.figures_num = 0;
 
 	game->main_objs.figures = realloc(game->main_objs.figures, sizeof(t_object) * (game->main_objs.figures_num + 1));
-	game->main_objs.figures[game->main_objs.figures_num] = *object;
+	game->main_objs.figures[game->main_objs.figures_num] = *figure;
 	game->main_objs.figures_num += 1;
 
 }
 
 int	main(int argc, char **argv)
 {
+	if (argv[1] == NULL)
+	{
+		ft_putstr("\n Please, choose the scene\n");
+		return(0);
+	}
 	game.sdl = malloc(sizeof(t_sdl));
 	game.image = ft_surface_create(WIN_W, WIN_H);
 	t_material ivory = (t_material){(t_vec3){0.4, 0.4, 0.3},.albendo= (t_vec3){0.6, 0.3, .0, .0}, .specular_exponent=50};
@@ -175,6 +180,7 @@ int	main(int argc, char **argv)
 	game.init_render = 1;
 	game.origin = (t_vec3){0,0,5,1};
 	game.gpu = (t_gpu *)malloc(sizeof(t_gpu));
+	game.gpu->scene = argv[1];
 	opencl_init(game.gpu, &game);
 	ft_init_window(game.sdl, WIN_W, WIN_H);
 

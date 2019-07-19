@@ -1,0 +1,348 @@
+// floor - пол
+{
+	"Type" : "sphere",
+	"Radius" : 200 ,
+    "Position" :
+    {
+        "distance x" : 0 ,
+        "distance y" : -200.40 ,
+        "distance z" : 0.00
+	},
+	"Color" :
+	{
+		"red"   : 0.010 ,
+		"green" : 0.00 ,
+		"blue"  : 0.6120
+	},
+	"emission" :
+	{
+		"red"   : 0.0 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+
+// ceiling - потолок
+{
+	"Type" : "sphere",
+	"Radius" : 200 ,
+    "Position" :
+    {
+        "distance x" : 0 ,
+        "distance y" : 200.4 ,
+        "distance z" : 0.00
+	},
+	"Color" :
+	{
+		"red"   : 0.9 ,
+		"green" : 0.8 ,
+		"blue"  : 0.7
+	},
+	"emission" :
+	{
+		"red"   : 0.0 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+
+// back wall - задняя стена
+{
+	"Type" : "sphere",
+	"Radius" : 200 ,
+    "Position" :
+    {
+        "distance x" : 0 ,
+        "distance y" : 0.0 ,
+        "distance z" : -200.40
+	},
+	"Color" :
+	{
+		"red"   : 0.9 ,
+		"green" : 0.80 ,
+		"blue"  : 0.89
+	},
+	"emission" :
+	{
+		"red"   : 0.0 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+
+// front wall - передняя стена
+{
+	"Type" : "sphere",
+	"Radius" : 200 ,
+    "Position" :
+    {
+        "distance x" : 0,
+        "distance y" : 0.0 ,
+        "distance z" : 202.00
+	},
+	"Color" :
+	{
+		"red"   : 0.710 ,
+		"green" : 0.10 ,
+		"blue"  : 0.120
+	},
+	"emission" :
+	{
+		"red"   : 0.0 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+
+// left wall - левая стена
+{
+	"Type" : "sphere",
+	"Radius" : 200 ,
+    "Position" :
+    {
+        "distance x" : -200.60 ,
+        "distance y" : 0.0 ,
+        "distance z" : 0.00
+	},
+	"Color" :
+	{
+		"red"   : 0.710 ,
+		"green" : 0.10 ,
+		"blue"  : 0.120
+	},
+	"emission" :
+	{
+		"red"   : 0.0 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+// sphere centre - центральный шар
+{
+	//"Type" : "sphere",
+	"Radius" : 0.19 ,
+    "Position" :
+    {
+        "distance x" : -0.30 ,
+        "distance y" :  0.15 ,
+        "distance z" : -0.32150
+	},
+	"Color" :
+	{
+		"red"   : 0.10 ,
+		"green" : 0.10 ,
+		"blue"  : 0.120
+	},
+	"emission" :
+	{
+		"red"   : 2.100 ,
+		"green" : 2.0 ,
+		"blue"  : 5.10
+	},
+	"Reflection" : 0
+}
+
+// sphere right
+{
+	"Type" : "sphere",
+	"Radius" : 0.5 ,
+    "Position" :
+    {
+        "distance x" : 1.0 ,
+        "distance y" : 0.0 ,
+        "distance z" : 0.0
+	},
+	"Color" :
+	{
+		"red"   : 0.21000 ,
+		"green" : 0.1000 ,
+		"blue"  : 0.2100
+	},
+	"emission" :
+	{
+		"red"   : 0.100 ,
+		"green" : 0.1000 ,
+		"blue"  : 0.1000
+	},
+	"Reflection" : 5
+}
+
+// sphere left
+{
+	//"Type" : "sphere",
+	"Radius" : 0.2 ,
+    "Position" :
+    {
+        "distance x" : -0.50 ,
+        "distance y" : -0.250 ,
+        "distance z" : -0.20
+	},
+	"Color" :
+	{
+		"red"   : 0.21000 ,
+		"green" : 0.1000 ,
+		"blue"  : 0.2100
+	},
+	"emission" :
+	{
+		"red"   : 0.100 ,
+		"green" : 0.1000 ,
+		"blue"  : 0.1000
+	},
+	"Reflection" : 5
+}
+
+// cyl cen
+{
+	//"Type" : "cyl",
+	"Radius" : 0.015 ,
+	"Rotation" :
+	{
+		"x" : 0 ,
+		"y" : 1 ,
+		"z" : 0
+	},
+    "Position" :
+    {
+        "distance x" : 0.00 ,
+        "distance y" : 0.00 ,
+        "distance z" : 0.00
+	},
+	"Color" :
+	{
+		"red"   : 0.90 ,
+		"green" : 0.80 ,
+		"blue"  : 0.70
+	},
+	"emission" :
+	{
+		"red"   : 0.1000 ,
+		"green" : 1.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+
+// cyl right
+{
+	"Type" : "cyl",
+	"Radius" : 0.015 ,
+	"Rotation" :
+	{
+		"x" : 0 ,
+		"y" : 1 ,
+		"z" : 0
+	},
+    "Position" :
+    {
+        "distance x" : 0.200 ,
+        "distance y" : 0.00 ,
+        "distance z" : 0.00
+	},
+	"Color" :
+	{
+		"red"   : 0.90 ,
+		"green" : 1.80 ,
+		"blue"  : 1.70
+	},
+	"emission" :
+	{
+		"red"   : 0.1000 ,
+		"green" : 0.0 ,
+		"blue"  : 2.0
+	},
+	"Reflection" : 0
+}
+
+// cyl left
+{
+	//"Type" : "cyl",
+	"Radius" : 0.015 ,
+	"Rotation" :
+	{
+		"x" : 0 ,
+		"y" : 1 ,
+		"z" : 0
+	},
+    "Position" :
+    {
+        "distance x" : -0.300 ,
+        "distance y" : 0.00 ,
+        "distance z" : 0.00
+	},
+	"Color" :
+	{
+		"red"   : 1.90 ,
+		"green" : 1.80 ,
+		"blue"  : 2.70
+	},
+	"emission" :
+	{
+		"red"   : 1.1000 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+
+// cyl left
+{
+	//"Type" : "cyl",
+	"Radius" : 0.015 ,
+	"Rotation" :
+	{
+		"x" : 0 ,
+		"y" : 0 ,
+		"z" : 1
+	},
+    "Position" :
+    {
+        "distance x" : -0.500 ,
+        "distance y" : 0.00 ,
+        "distance z" : 0.00
+	},
+	"Color" :
+	{
+		"red"   : 0.90 ,
+		"green" : 1.80 ,
+		"blue"  : 0.70
+	},
+	"emission" :
+	{
+		"red"   : 1.1000 ,
+		"green" : 2.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+
+// cyl plane
+{
+	"Type" : "pla",
+	"Radius" : 0.015 ,
+    "Position" :
+    {
+        "distance x" : -0.7 ,
+        "distance y" : 0.00 ,
+        "distance z" : 0.00
+	},
+	"Color" :
+	{
+		"red"   : 0.90 ,
+		"green" : 1.80 ,
+		"blue"  : 0.70
+	},
+	"emission" :
+	{
+		"red"   : 0.71000 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0 ,
+	"plane_d" : 0.4
+}

@@ -3,10 +3,10 @@
 #                                                         :::      ::::::::    #
 #    Makefile                                           :+:      :+:    :+:    #
 #                                                     +:+ +:+         +:+      #
-#    By: jblack-b <jblack-b@student.42.fr>          +#+  +:+       +#+         #
+#    By: odale-dr <odale-dr@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/03/16 12:58:07 by jblack-b          #+#    #+#              #
-#    Updated: 2019/06/23 17:07:23 by jblack-b         ###   ########.fr        #
+#    Updated: 2019/07/19 19:39:05 by odale-dr         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -53,7 +53,9 @@ LIB_LIST =	libSDL2.a\
 
 SRCS_DIRECTORY = ./srcs/
 
-SRCS_LIST = main.c map_parser.c vectors.c quaternion.c rotate.c intersect.c matrix.c normals.c math.c gpu_init.c
+SRCS_LIST = main.c map_parser.c vectors.c quaternion.c rotate.c intersect.c \
+			 matrix.c normals.c math.c gpu_init.c quan_type.c create_cfloat3x.c read_scene.c \
+			 return_float.c type.c
 
 
 OBJS_DIRECTORY = objects/

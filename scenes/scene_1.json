@@ -1,0 +1,310 @@
+// lightsource - свет
+{
+	"Type" : "sphere",
+	"Radius" : 1 ,
+    "Position" :
+    {
+        "distance x" : 0.0 ,
+        "distance y" : 1.36 ,
+        "distance z" : 0
+	},
+	"Color" :
+	{
+		"red"   : 1.100 ,
+		"green" : 0.000 ,
+		"blue"  : 1.100
+	},
+	"emission" :
+	{
+		"red"   : 0.5100 ,
+		"green" : 2.50 ,
+		"blue"  : 0.510
+	},
+	"Reflection" : 0
+}
+
+// floor - пол
+{
+	"Type" : "sphere",
+	"Radius" : 200 ,
+    "Position" :
+    {
+        "distance x" : 0 ,
+        "distance y" : -200.40 ,
+        "distance z" : 0.00
+	},
+	"Color" :
+	{
+		"red"   : 0.010 ,
+		"green" : 0.00 ,
+		"blue"  : 0.6120
+	},
+	"emission" :
+	{
+		"red"   : 0.0 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+
+// ceiling - потолок
+{
+	"Type" : "sphere",
+	"Radius" : 200 ,
+    "Position" :
+    {
+        "distance x" : 0 ,
+        "distance y" : 200.4 ,
+        "distance z" : 0.00
+	},
+	"Color" :
+	{
+		"red"   : 0.9 ,
+		"green" : 0.8 ,
+		"blue"  : 0.7
+	},
+	"emission" :
+	{
+		"red"   : 0.0 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+
+// back wall - задняя стена
+{
+	"Type" : "sphere",
+	"Radius" : 200 ,
+    "Position" :
+    {
+        "distance x" : 0 ,
+        "distance y" : 0.0 ,
+        "distance z" : -200.40
+	},
+	"Color" :
+	{
+		"red"   : 0.9 ,
+		"green" : 0.80 ,
+		"blue"  : 0.89
+	},
+	"emission" :
+	{
+		"red"   : 0.0 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+
+// front wall - передняя стена
+{
+	"Type" : "sphere",
+	"Radius" : 200 ,
+    "Position" :
+    {
+        "distance x" : 0,
+        "distance y" : 0.0 ,
+        "distance z" : 202.00
+	},
+	"Color" :
+	{
+		"red"   : 0.710 ,
+		"green" : 0.10 ,
+		"blue"  : 0.120
+	},
+	"emission" :
+	{
+		"red"   : 0.0 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+
+// left wall - левая стена
+{
+	"Type" : "sphere",
+	"Radius" : 200 ,
+    "Position" :
+    {
+        "distance x" : -200.60 ,
+        "distance y" : 0.0 ,
+        "distance z" : 0.00
+	},
+	"Color" :
+	{
+		"red"   : 0.710 ,
+		"green" : 0.10 ,
+		"blue"  : 0.120
+	},
+	"emission" :
+	{
+		"red"   : 0.0 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+
+// sphere centre - центральный шар
+{
+	//"Type" : "sphere",
+	"Radius" : 0.19 ,
+    "Position" :
+    {
+        "distance x" : 0.0 ,
+        "distance y" : -0.150 ,
+        "distance z" : -0.32150
+	},
+	"Color" :
+	{
+		"red"   : 0.10 ,
+		"green" : 0.10 ,
+		"blue"  : 0.120
+	},
+	"emission" :
+	{
+		"red"   : 0.100 ,
+		"green" : 2.0 ,
+		"blue"  : 5.10
+	},
+	"Reflection" : 8
+}
+
+// sphere right
+{
+	//"Type" : "sphere",
+	"Radius" : 0.5 ,
+    "Position" :
+    {
+        "distance x" : 1.0 ,
+        "distance y" : 0.0 ,
+        "distance z" : 0.0
+	},
+	"Color" :
+	{
+		"red"   : 0.21000 ,
+		"green" : 0.1000 ,
+		"blue"  : 0.2100
+	},
+	"emission" :
+	{
+		"red"   : 0.20 ,
+		"green" : 0.200 ,
+		"blue"  : 0.200
+	},
+	"Reflection" : 20
+}
+
+// sphere left
+{
+	"Type" : "sphere",
+	"Radius" : 0.09 ,
+    "Position" :
+    {
+        "distance x" : -0.40 ,
+        "distance y" : 0.20 ,
+        "distance z" : 0.50
+	},
+	"Color" :
+	{
+		"red"   : 0.50 ,
+		"green" : 0.30 ,
+		"blue"  : 0.20
+	},
+	"emission" :
+	{
+		"red"   : 0.000 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 10
+}
+
+// sphere left2
+{
+	"Type" : "sphere",
+	"Radius" : 0.09 ,
+    "Position" :
+    {
+        "distance x" : -0.40 ,
+        "distance y" : -0.20 ,
+        "distance z" : 0.50
+	},
+	"Color" :
+	{
+		"red"   : 0.50 ,
+		"green" : 0.30 ,
+		"blue"  : 0.80
+	},
+	"emission" :
+	{
+		"red"   : 0.000 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 10
+}
+// cone left
+{
+	"Type" : "cone",
+	"Radius" : 0.5 ,
+	"Rotation" :
+	{
+		"x" : 0 ,
+		"y" : 1 ,
+		"z" : 0
+	},
+    "Position" :
+    {
+        "distance x" : -0.40 ,
+        "distance y" : 0.00 ,
+        "distance z" : -0.10
+	},
+	"Color" :
+	{
+		"red"   : 0.90 ,
+		"green" : 1.80 ,
+		"blue"  : 0.70
+	},
+	"emission" :
+	{
+		"red"   : 1.000 ,
+		"green" : 0.0 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 0
+}
+
+// cone left
+{
+	//"Type" : "cylinder",
+	"Radius" : 0.1 ,
+	"Rotation" :
+	{
+		"x" : 1 ,
+		"y" : 0 ,
+		"z" : 0
+	},
+    "Position" :
+    {
+        "distance x" : -0.10 ,
+        "distance y" : 0.00 ,
+        "distance z" : 0.20
+	},
+	"Color" :
+	{
+		"red"   : 0.90 ,
+		"green" : 0.80 ,
+		"blue"  : 0.70
+	},
+	"emission" :
+	{
+		"red"   : 0.000 ,
+		"green" : 0.10 ,
+		"blue"  : 0.0
+	},
+	"Reflection" : 1
+}

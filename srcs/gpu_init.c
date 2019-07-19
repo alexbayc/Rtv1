@@ -60,7 +60,7 @@ int bind_data(t_gpu *gpu, t_main_obj *main)
 	int h = WIN_H;
 	size_t global = WIN_W * WIN_H;
 	const int count = global;
-	const int n_spheres = 9;
+	const int n_spheres = quan_type(gpu->scene);
 	int i;
 	int j;
 	static t_vec3 *h_a;//TODO push it inside t_gpu
@@ -209,8 +209,9 @@ int opencl_init(t_gpu *gpu, t_game *game)
     gpu_read_kernel(gpu);
 	gpu->kernel = clCreateKernel(gpu->program, "render_kernel", &gpu->err);
 	gpu->cpuOutput = malloc(sizeof(int) * (WIN_H * WIN_H));
-	gpu->spheres = malloc(sizeof(t_obj) * 9);
-	initScene(gpu->spheres);
+	gpu->spheres = malloc(sizeof(t_obj) * quan_type(gpu->scene));
+	read_scene(gpu->spheres, gpu->scene);
+	//initScene(gpu->spheres);
 	bind_data(gpu, &game->main_objs);
     return (gpu->err);
 }

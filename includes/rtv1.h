@@ -284,6 +284,7 @@ typedef struct s_gpu
 	t_obj *spheres;
 	cl_mem cl_bufferOut;
 	cl_mem cl_cpuSpheres;
+	char	*scene;
 }				t_gpu;
 
 typedef struct s_game
@@ -302,6 +303,7 @@ typedef struct s_game
 	t_main_obj	main_objs;
 	t_gpu *gpu;
 	int init_render;
+
 } t_game;
 
 int bind_data(t_gpu *gpu, t_main_obj *main);
@@ -402,4 +404,10 @@ double		plane_intersection(void *object, t_ray *ray, float *t0);
 
 
 int			opencl_init(t_gpu *gpu, t_game *game);
+
+void				read_scene(t_obj* cpu_spheres, char *s);
+float		   		return_float(char *s);
+int					quan_type(char *s);
+cl_float3 			create_cfloat3x (float x, float y, float z);
+void				type(t_obj *cpu_spheres, char **x, int r, int t);
 #endif
